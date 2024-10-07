@@ -145,10 +145,10 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
         wind_direction = get_wind_direction(forecast['wind']['deg'])
         hourly_forecast_message += (
             f"Time: {forecast_time}\n"
-            f"Temperature: {temperature}°C\n"
-            f"Weather: {description}\n"
-            f"Wind Speed: {wind_speed} m/s\n"
-            f"Wind Direction: {wind_direction}\n\n"
+            f"🌡️ Temperature: {temperature}°C\n"
+            f"🌦️ Weather: {description}\n"
+            f"🌬️ Wind Speed: {wind_speed} m/s\n"
+            f"🧭 Wind Direction: {wind_direction}\n\n"
         )
 
     bot.send_message(message.chat.id, hourly_forecast_message, parse_mode='Markdown')
@@ -180,10 +180,10 @@ def fetch_four_day_forecast(message, latitude=None, longitude=None):
         wind_direction = get_wind_direction(forecast['wind']['deg'])
         four_day_forecast += (
             f"Date: {forecast_date}\n"
-            f"Temperature: {temperature}°C\n"
-            f"Weather: {description}\n"
-            f"Wind Speed: {wind_speed} m/s\n"
-            f"Wind Direction: {wind_direction}\n\n"
+            f"🌡️ Temperature: {temperature}°C\n"
+            f"🌦️ Weather: {description}\n"
+            f"🌬️ Wind Speed: {wind_speed} m/s\n"
+            f"🧭 Wind Direction: {wind_direction}\n\n"
         )
 
     bot.send_message(message.chat.id, four_day_forecast, parse_mode='Markdown')
