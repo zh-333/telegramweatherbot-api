@@ -5,7 +5,7 @@ import logging, logging.config
 from flask import Flask, request
 from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
-from datetime import datetime, timedelta
+from datetime import datetime
 
 load_dotenv()
 
@@ -93,17 +93,6 @@ def get_weather(latitude, longitude):
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching weather data: {e}")
         return None
-    
-# Get weather data using One Call API for hourly forecasts
-def get_hourly_weather(latitude, longitude):
-    url = f'https://api.openweathermap.org/data/2.5/onecall?lat={latitude}&lon={longitude}&exclude=current,minutely,daily,alerts&units=metric&appid={WEATHER_TOKEN}'
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error fetching weather data: {e}")
-        return None
 
 # Fetch current weather
 def fetch_weather(message, latitude=None, longitude=None):
@@ -136,41 +125,43 @@ def hourly_forecast(message):
     sent_message = bot.send_message(message.chat.id, "Please enter the location for an hourly weather forecast:")
     bot.register_next_step_handler(sent_message, fetch_hourly_forecast)
 
-# Fetch hourly forecast using One Call API
+# Fetch hourly forecast
 def fetch_hourly_forecast(message, latitude=None, longitude=None):
     if latitude is None or longitude is None:
         prompt_for_valid_location(message, fetch_hourly_forecast)
         return
 
-    weather = get_hourly_weather(latitude, longitude)
-    if 'hourly' not in weather:
+    weather = get_weather(latitude, longitude)
+    if 'list' not in weather:
         bot.send_message(message.chat.id, "Could not fetch weather data. Please try again later.")
         return
 
+    current_time = datetime.utcnow()  
     hourly_forecast_message = "*12-Hour Weather Forecast:*\n"
 
-    forecasts = weather['hourly']
-
-    # Iterate through the next 12 hours of forecast data
-    for i in range(12):  # Next 12 hours
-        forecast = forecasts[i]
-        forecast_time = datetime.utcfromtimestamp(forecast['dt']) + timedelta(hours=8)  # Convert to local time
-        forecast_time_str = forecast_time.strftime('%H:%M %d-%m-%Y')
-        temperature = round(forecast['temp'], 1)
-        description = forecast['weather'][0]['description'].capitalize()
-        wind_speed = round(forecast['wind_speed'] * 3.6, 1)  # Convert m/s to km/h
-        wind_direction = get_wind_direction(forecast['wind_deg'])
-
-        hourly_forecast_message += (
-            f"Time: {forecast_time_str}\n"
-            f"🌡️ Temperature: {temperature}°C\n"
-            f"🌦️ Weather: {description}\n"
-            f"🌬️ Wind Speed: {wind_speed} km/h\n"
-            f"🧭 Wind Direction: {wind_direction}\n\n"
-        )
+    # Find the forecast closest to the current time
+    forecasts = weather['list']
+    for forecast in forecasts:
+        forecast_time = datetime.utcfromtimestamp(forecast['dt'])
+        if forecast_time >= current_time:
+            # Found the first forecast after the current time
+            for i in range(2, 6):  # Show the next 4 forecasts (12 hours)
+                forecast = forecasts[i]
+                forecast_time = datetime.utcfromtimestamp(forecast['dt']).strftime('%H:%M %d-%m-%Y')
+                temperature = round(forecast['main']['temp'], 1)
+                description = forecast['weather'][0]['description'].capitalize()
+                wind_speed = round(forecast['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
+                wind_direction = get_wind_direction(forecast['wind']['deg'])
+                hourly_forecast_message += (
+                    f"Time: {forecast_time}\n"
+                    f"🌡️ Temperature: {temperature}°C\n"
+                    f"🌦️ Weather: {description}\n"
+                    f"🌬️ Wind Speed: {wind_speed} km/h\n"
+                    f"🧭 Wind Direction: {wind_direction}\n\n"
+                )
+            break
 
     bot.send_message(message.chat.id, hourly_forecast_message, parse_mode='Markdown')
-
 # Command: /4day for 4-day weather outlook
 @bot.message_handler(commands=['4day'])
 def four_day_forecast(message):
