@@ -5,7 +5,7 @@ import logging, logging.config
 from flask import Flask, request
 from dotenv import load_dotenv
 from geopy.geocoders import Nominatim
-from datetime import datetime
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -136,7 +136,7 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
         bot.send_message(message.chat.id, "Could not fetch weather data. Please try again later.")
         return
 
-    current_time = datetime.utcnow()  # Current time in UTC
+    current_time = datetime.utcnow() + timedelta(hours=8)  # Current time in UTC
     hourly_forecast_message = "*12-Hour Weather Forecast:*\n"
 
     # Find the forecast closest to the current time
