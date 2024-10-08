@@ -111,7 +111,7 @@ def fetch_weather(message, latitude=None, longitude=None):
             f"🌦️ *Weather:* {description.capitalize()}\n"
             f"🌡️ *Temperature:* {temperature}°C\n"
             f"💧 *Humidity:* {humidity}%\n"
-            f"🌬️ *Wind Speed:* {wind_speed} m/s\n"
+            f"🌬️ *Wind Speed:* {wind_speed} km/h\n"
             f"🧭 *Wind Direction:* {wind_direction}\n"
         )
         bot.send_message(message.chat.id, "Here's the current weather:", parse_mode='Markdown')
@@ -136,23 +136,32 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
         bot.send_message(message.chat.id, "Could not fetch weather data. Please try again later.")
         return
 
+    current_time = datetime.utcnow()  # Current time in UTC
     hourly_forecast_message = "*12-Hour Weather Forecast:*\n"
-    for forecast in weather['list'][:4]:  # Forecasts in 3-hour intervals, for the next 12 hours
-        forecast_time = datetime.utcfromtimestamp(forecast['dt']).strftime('%H:%M %d-%m-%Y')
-        temperature = round(forecast['main']['temp'], 1)
-        description = forecast['weather'][0]['description'].capitalize()
-        wind_speed = round(forecast['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
-        wind_direction = get_wind_direction(forecast['wind']['deg'])
-        hourly_forecast_message += (
-            f"Time: {forecast_time}\n"
-            f"🌡️ Temperature: {temperature}°C\n"
-            f"🌦️ Weather: {description}\n"
-            f"🌬️ Wind Speed: {wind_speed} m/s\n"
-            f"🧭 Wind Direction: {wind_direction}\n\n"
-        )
+
+    # Find the forecast closest to the current time
+    forecasts = weather['list']
+    for forecast in forecasts:
+        forecast_time = datetime.utcfromtimestamp(forecast['dt'])
+        if forecast_time >= current_time:
+            # Found the first forecast after the current time
+            for i in range(4):  # Show the next 4 forecasts (12 hours)
+                forecast = forecasts[i]
+                forecast_time = datetime.utcfromtimestamp(forecast['dt']).strftime('%H:%M %d-%m-%Y')
+                temperature = round(forecast['main']['temp'], 1)
+                description = forecast['weather'][0]['description'].capitalize()
+                wind_speed = round(forecast['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
+                wind_direction = get_wind_direction(forecast['wind']['deg'])
+                hourly_forecast_message += (
+                    f"Time: {forecast_time}\n"
+                    f"🌡️ Temperature: {temperature}°C\n"
+                    f"🌦️ Weather: {description}\n"
+                    f"🌬️ Wind Speed: {wind_speed} km/h\n"
+                    f"🧭 Wind Direction: {wind_direction}\n\n"
+                )
+            break
 
     bot.send_message(message.chat.id, hourly_forecast_message, parse_mode='Markdown')
-
 # Command: /4day for 4-day weather outlook
 @bot.message_handler(commands=['4day'])
 def four_day_forecast(message):
@@ -182,7 +191,7 @@ def fetch_four_day_forecast(message, latitude=None, longitude=None):
             f"Date: {forecast_date}\n"
             f"🌡️ Temperature: {temperature}°C\n"
             f"🌦️ Weather: {description}\n"
-            f"🌬️ Wind Speed: {wind_speed} m/s\n"
+            f"🌬️ Wind Speed: {wind_speed} km/h\n"
             f"🧭 Wind Direction: {wind_direction}\n\n"
         )
 
