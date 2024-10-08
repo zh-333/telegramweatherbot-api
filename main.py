@@ -11,7 +11,7 @@ load_dotenv()
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 WEATHER_TOKEN = os.environ.get('WEATHER_TOKEN')
-WEBHOOK_URL = os.environ.get('WEBHOOK_URL')  # URL for setting webhook
+WEBHOOK_URL = os.environ.get('WEBHOOK_URL') 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
@@ -145,7 +145,7 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
         forecast_time = datetime.utcfromtimestamp(forecast['dt'])
         if forecast_time >= current_time:
             # Found the first forecast after the current time
-            for i in range(2, 6):  # Show the next 4 forecasts (12 hours)
+            for i in range(3, 7):  # Show the next 4 forecasts (12 hours)
                 forecast = forecasts[i]
                 forecast_time = datetime.utcfromtimestamp(forecast['dt']).strftime('%H:%M %d-%m-%Y')
                 temperature = round(forecast['main']['temp'], 1)
@@ -162,6 +162,7 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
             break
 
     bot.send_message(message.chat.id, hourly_forecast_message, parse_mode='Markdown')
+    
 # Command: /4day for 4-day weather outlook
 @bot.message_handler(commands=['4day'])
 def four_day_forecast(message):
