@@ -181,7 +181,7 @@ def fetch_four_day_forecast(message, latitude=None, longitude=None):
         return
 
     four_day_forecast = "*4-Day Weather Forecast:*\n"
-    for i in range(0, 32, 8):  # 1 forecast every 8 intervals (24 hours) for the next 4 days
+    for i in range(24, 64, 8):  # 1 forecast every 8 intervals (24 hours) for the next 4 days
         forecast = weather['list'][i]
         forecast_date = datetime.utcfromtimestamp(forecast['dt']).strftime('%d-%m-%Y')
         temperature = round(forecast['main']['temp'], 1)
