@@ -105,7 +105,7 @@ def fetch_weather(message, latitude=None, longitude=None):
         description = weather['list'][0]['weather'][0]['description']
         temperature = round(weather['list'][0]['main']['temp'], 1)
         humidity = weather['list'][0]['main']['humidity']
-        wind_speed = weather['list'][0]['wind']['speed']
+        wind_speed = round(weather['list'][0]['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
         wind_direction = get_wind_direction(weather['list'][0]['wind']['deg'])
         weather_message = (
             f"🌦️ *Weather:* {description.capitalize()}\n"
@@ -141,7 +141,7 @@ def fetch_hourly_forecast(message, latitude=None, longitude=None):
         forecast_time = datetime.utcfromtimestamp(forecast['dt']).strftime('%H:%M %d-%m-%Y')
         temperature = round(forecast['main']['temp'], 1)
         description = forecast['weather'][0]['description'].capitalize()
-        wind_speed = forecast['wind']['speed']
+        wind_speed = round(forecast['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
         wind_direction = get_wind_direction(forecast['wind']['deg'])
         hourly_forecast_message += (
             f"Time: {forecast_time}\n"
@@ -176,7 +176,7 @@ def fetch_four_day_forecast(message, latitude=None, longitude=None):
         forecast_date = datetime.utcfromtimestamp(forecast['dt']).strftime('%d-%m-%Y')
         temperature = round(forecast['main']['temp'], 1)
         description = forecast['weather'][0]['description'].capitalize()
-        wind_speed = forecast['wind']['speed']
+        wind_speed = round(forecast['wind']['speed'] * 3.6, 1)  # Convert m/s to km/h
         wind_direction = get_wind_direction(forecast['wind']['deg'])
         four_day_forecast += (
             f"Date: {forecast_date}\n"
